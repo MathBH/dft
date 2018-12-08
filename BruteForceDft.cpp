@@ -14,7 +14,7 @@ BruteForceDft::~BruteForceDft()
 }
 
 
-std::vector<std::complex<double>> BruteForceDft::getDft(std::vector<double> samples)
+std::vector<std::complex<double>> BruteForceDft::getDft(std::vector<std::complex<double>> samples)
 {
 	std::complex<double> i = -1;
 	i = sqrt(i);

@@ -14,11 +14,11 @@ WaveGenerator::~WaveGenerator()
 {
 }
 
-std::vector<double> WaveGenerator::sinwave(double frequency, int numSamples, double samplingPeriod, double amplitude)
+std::vector<std::complex<double>> WaveGenerator::sinwave(double frequency, int numSamples, double samplingPeriod, double amplitude)
 {
 	double increment = TWO_PI*frequency*samplingPeriod;
 
-	std::vector<double> sinwave = std::vector<double>(numSamples);
+	std::vector<std::complex<double>> sinwave = std::vector<std::complex<double>>(numSamples);
 	for (int i = 0; i < numSamples; i++) {
 		sinwave[i] = amplitude*sin((double)i*increment);
 	}
@@ -26,11 +26,11 @@ std::vector<double> WaveGenerator::sinwave(double frequency, int numSamples, dou
 	return sinwave;
 }
 
-std::vector<double> WaveGenerator::coswave(double frequency, int numSamples, double samplingPeriod, double amplitude)
+std::vector<std::complex<double>> WaveGenerator::coswave(double frequency, int numSamples, double samplingPeriod, double amplitude)
 {
 	double increment = TWO_PI*frequency*samplingPeriod;
 
-	std::vector<double> coswave = std::vector<double>(numSamples);
+	std::vector<std::complex<double>> coswave = std::vector<std::complex<double>>(numSamples);
 	for (int i = 0; i < numSamples; i++) {
 		coswave[i] = amplitude*cos((double)i*increment);
 	}

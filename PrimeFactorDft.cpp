@@ -1,24 +1,39 @@
 #include "stdafx.h"
 #include "PrimeFactorDft.h"
+#include "DFTAlgorithm.h"
 
 PrimeFactorDft::PrimeFactorDft()
 {
 	mapper = PFFTMapper();
 	primeFactorCalculator = PrimeFactors();
+	dft2 = DFT2();
+	dft3 = DFT3();
+	dft4 = DFT4();
+	dft5 = DFT5();
+	dft7 = DFT7();
+	dftBruteForce = BruteForceDft();
+	subAlgorithms = std::vector<DFTAlgorithm*>({
+		&dft2, &dft3,
+		&dft4, &dft5,
+		&dft7 });
 }
-
 
 PrimeFactorDft::~PrimeFactorDft()
 {
 }
 
-std::vector<std::complex<double>> PrimeFactorDft::getDft(std::vector<double> samples)
+DFTAlgorithm * PrimeFactorDft::getSubAlg(int size)
+{
+	return &dftBruteForce;
+}
+
+std::vector<std::complex<double>> PrimeFactorDft::getDft(std::vector<std::complex<double>> samples)
 {
 	int numSamples = samples.size();
-	std::vector<int> primeFactors = this->primeFactorCalculator.primeFactors(numSamples);
+	std::vector<PrimeFactor> primeFactors = this->primeFactorCalculator.primeFactors(numSamples);
 
 	int numPrimes = primeFactors.size();
-	std::vector<std::vector<std::complex<double>>> db = std::vector<std::vector<std::complex<double>>>(numPrimes,std::vector<std::complex<double>>(numSamples)); // TODO: probably make into multidimentional matrix and move through
+	std::vector<std::vector<std::complex<double>>> db = std::vector<std::vector<std::complex<double>>>(numPrimes+1,std::vector<std::complex<double>>(numSamples)); // TODO: probably make into multidimentional matrix and move through
 
 	std::vector<int> convolutionArray = this->mapper.basicMapping(numSamples, primeFactors);
 
@@ -52,14 +67,17 @@ std::vector<std::complex<double>> PrimeFactorDft::getDft(std::vector<double> sam
 	int vectorEnd;
 
 	int currPos;
+	DFTAlgorithm* subAlg;
+	std::vector<std::complex<double>> dftBuffer;
 	std::vector<std::complex<double>> vectorBuffer;
 	for (int d = 1; d < numPrimes; d++)
 	{
-		increment *= primeFactors[d - 1];
-		vectorLength = primeFactors[d];
+		increment *= primeFactors[d - 1].getValue();
+		vectorLength = primeFactors[d].getValue();
 		vectorOffset = vectorLength * increment;
 
 		// use primeFactors[d] to select dft alg
+		subAlg = getSubAlg(d);
 		vectorBuffer = std::vector<std::complex<double>>(vectorLength);
 
 		// for each value betwen increments
@@ -74,17 +92,25 @@ std::vector<std::complex<double>> PrimeFactorDft::getDft(std::vector<double> sam
 					currPos = i + h * increment;
 					vectorBuffer[h] = db[d-1][currPos];
 				}
+				dftBuffer = subAlg->getDft(vectorBuffer);
+
 				// feed dft vals into current db
 				for (int h = 0; h < vectorLength; h++)
 				{
 					currPos = i + h * increment;
-					db[d][currPos] = h; // TODO compute dft for X_h of vectorBuffer
+					db[d][currPos] = dftBuffer[h];
 				}
 			}
 		}
 	}
 
-	// TODO: reverse convolution
+	// Reverse convolution
+	int last = numPrimes - 1;
+	for (int i = 0; i < numSamples; i++)
+	{
+		db[numPrimes][convolutionArray[i]] = db[last][i];
+	}
 
-	return db[numPrimes-1];
+
+	return db[numPrimes];
 }

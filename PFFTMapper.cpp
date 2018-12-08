@@ -11,7 +11,7 @@ PFFTMapper::~PFFTMapper()
 {
 }
 
-std::vector<int> PFFTMapper::basicMapping(int numSamples, std::vector<int> primeBases)
+std::vector<int> PFFTMapper::basicMapping(int numSamples, std::vector<PrimeFactor> primeBases)
 {
 	int D = primeBases.size();
 	std::vector<int> indicies = std::vector<int>();
@@ -23,7 +23,7 @@ std::vector<int> PFFTMapper::basicMapping(int numSamples, std::vector<int> prime
 
 	for (int d = 0; d < D; d++)
 	{
-		prime = primeBases[d];
+		prime = primeBases[d].getValue();
 		scaler = numSamples / prime;
 		for (int i = 0; i < numSamples; i++)
 		{
