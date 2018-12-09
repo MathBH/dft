@@ -8,6 +8,7 @@ public:
 	PFFTMapper();
 	~PFFTMapper();
 
-	std::vector<int> basicMapping(int numSamples, std::vector<PrimeFactor> primeBases);
+	std::vector<int> inputMapping(int numSamples, std::vector<PrimeFactor> primeFactors);
+	std::vector<int> outputMapping(int numSamples, std::vector<PrimeFactor> primeFactors);
 };
 

@@ -24,11 +24,11 @@ namespace UnitTest1
 	{
 	public:
 		PFFTMapper pfftMapper = PFFTMapper();
-		TEST_METHOD(MappingTest1)
+		TEST_METHOD(InputMappingTest1)
 		{
 			int numValues = 12;
 			std::vector<PrimeFactor> primes = std::vector<PrimeFactor>({ PrimeFactor(1),PrimeFactor(3),PrimeFactor(2,2) });
-			std::vector<int> valuesMapped = pfftMapper.basicMapping(numValues, primes);
+			std::vector<int> valuesMapped = pfftMapper.inputMapping(numValues, primes);
 			std::vector<int> expectedMapping = std::vector<int>({ 0,4,8,3,7,11,6,10,2,9,1,5 });
 			Assert::IsTrue(valuesMapped.size() == expectedMapping.size());
 			for (int i = 0; i < numValues; i++)
@@ -36,12 +36,24 @@ namespace UnitTest1
 				Assert::IsTrue(valuesMapped[i] == expectedMapping[i]);
 			}
 		}
-		TEST_METHOD(MappingTest2)
+		TEST_METHOD(InputMappingTest2)
 		{
 			int numValues = 30;
 			std::vector<PrimeFactor> primes = std::vector<PrimeFactor>({ PrimeFactor(1),PrimeFactor(2),PrimeFactor(3),PrimeFactor(5) });
-			std::vector<int> valuesMapped = pfftMapper.basicMapping(numValues, primes);
+			std::vector<int> valuesMapped = pfftMapper.inputMapping(numValues, primes);
 			std::vector<int> expectedMapping = std::vector<int>({ 0,15,10,25,20,5,6,21,16,1,26,11,12,27,22,7,2,17,18,3,28,13,8,23,24,9,4,19,14,29 });
+			Assert::IsTrue(valuesMapped.size() == expectedMapping.size());
+			for (int i = 0; i < numValues; i++)
+			{
+				Assert::IsTrue(valuesMapped[i] == expectedMapping[i]);
+			}
+		}
+		TEST_METHOD(OutputMappingTest1)
+		{
+			int numValues = 12;
+			std::vector<PrimeFactor> primes = std::vector<PrimeFactor>({ PrimeFactor(1),PrimeFactor(3),PrimeFactor(2,2) });
+			std::vector<int> valuesMapped = pfftMapper.outputMapping(numValues, primes);
+			std::vector<int> expectedMapping = std::vector<int>({ 0,4,8,9,1,5,6,10,2,3,7,11 });
 			Assert::IsTrue(valuesMapped.size() == expectedMapping.size());
 			for (int i = 0; i < numValues; i++)
 			{
@@ -107,7 +119,7 @@ namespace UnitTest1
 		{
 			int numValues = 12;
 			std::vector<PrimeFactor> primes = pf.primeFactors(numValues);
-			std::vector<int> valuesMapped = pfftMapper.basicMapping(numValues, primes);
+			std::vector<int> valuesMapped = pfftMapper.inputMapping(numValues, primes);
 			std::vector<int> expectedMapping = std::vector<int>({ 0,4,8,3,7,11,6,10,2,9,1,5 });
 			Assert::IsTrue(valuesMapped.size() == expectedMapping.size());
 			for (int i = 0; i < numValues; i++)
@@ -119,7 +131,7 @@ namespace UnitTest1
 		{
 			int numValues = 30;
 			std::vector<PrimeFactor> primes = pf.primeFactors(numValues);
-			std::vector<int> valuesMapped = pfftMapper.basicMapping(numValues, primes);
+			std::vector<int> valuesMapped = pfftMapper.inputMapping(numValues, primes);
 			std::vector<int> expectedMapping = std::vector<int>({ 0,15,10,25,20,5,6,21,16,1,26,11,12,27,22,7,2,17,18,3,28,13,8,23,24,9,4,19,14,29 });
 			Assert::IsTrue(valuesMapped.size() == expectedMapping.size());
 			for (int i = 0; i < numValues; i++)
@@ -184,6 +196,268 @@ namespace UnitTest1
 			dftA = bdft.getDft(wave);
 			dftB = pfft.getDft(wave);
 			assertSimilar(dftA, dftB, error);
+		}
+		TEST_METHOD(SinWaveTest68)
+		{
+			error = 0.000000001;
+			wave = waveGen.sinwave(10., 68, 0.01, 1.);
+			dftA = bdft.getDft(wave);
+			dftB = pfft.getDft(wave);
+			assertSimilar(dftA, dftB, error);
+		}
+		TEST_METHOD(SinWaveTest82)
+		{
+			error = 0.000000001;
+			wave = waveGen.sinwave(10., 82, 0.01, 1.);
+			dftA = bdft.getDft(wave);
+			dftB = pfft.getDft(wave);
+			assertSimilar(dftA, dftB, error);
+		}
+		TEST_METHOD(SinWaveTest145)
+		{
+			error = 0.000000001;
+			wave = waveGen.sinwave(10., 145, 0.01, 1.);
+			dftA = bdft.getDft(wave);
+			dftB = pfft.getDft(wave);
+			assertSimilar(dftA, dftB, error);
+		}
+		TEST_METHOD(StressTest1)
+		{
+			error = 0.000000001;
+			int base = 1;
+			int cap = 100;
+			int increment = 1;
+			for (int N = base; N < cap; N += increment)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestPow3)
+		{
+			error = 0.000000001;
+			int base = 3;
+			int cap = 2000;
+			int mult = 3;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestPow2)
+		{
+			error = 0.000000001;
+			int base = 2;
+			int cap = 1000;
+			int mult = 2;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestPow5)
+		{
+			error = 0.000000001;
+			int base = 5;
+			int cap = 1000;
+			int mult = 5;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestPow7)
+		{
+			error = 0.000000001;
+			int base = 7;
+			int cap = 1000;
+			int mult = 7;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestPow6)
+		{
+			error = 0.000000001;
+			int base = 6;
+			int cap = 3000;
+			int mult = 6;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestMult2From3)
+		{
+			error = 0.000000001;
+			int base = 3;
+			int cap = 3000;
+			int mult = 2;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestMult3From2)
+		{
+			error = 0.000000001;
+			int base = 2;
+			int cap = 3000;
+			int mult = 3;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestMult2From5)
+		{
+			error = 0.000000001;
+			int base = 5;
+			int cap = 3000;
+			int mult = 2;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestMult2From7)
+		{
+			error = 0.000000001;
+			int base = 7;
+			int cap = 3000;
+			int mult = 2;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestMult5From2)
+		{
+			error = 0.000000001;
+			int base = 2;
+			int cap = 3000;
+			int mult = 5;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestMult7From2)
+		{
+			error = 0.000000001;
+			int base = 2;
+			int cap = 3000;
+			int mult = 7;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestMult5From3)
+		{
+			error = 0.000000001;
+			int base = 3;
+			int cap = 3000;
+			int mult = 5;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestMult3From5)
+		{
+			error = 0.000000001;
+			int base = 5;
+			int cap = 3000;
+			int mult = 3;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestMult7From3)
+		{
+			error = 0.000000001;
+			int base = 3;
+			int cap = 3000;
+			int mult = 7;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestMult3From7)
+		{
+			error = 0.000000001;
+			int base = 7;
+			int cap = 3000;
+			int mult = 3;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestLarge)
+		{
+			error = 0.000000001;
+			int base = 100;
+			int cap = 300;
+			int increment = 7;
+			for (int N = base; N < cap; N += increment)
+			{
+				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
 		}
 	};
 }

@@ -35,11 +35,12 @@ std::vector<std::complex<double>> PrimeFactorDft::getDft(std::vector<std::comple
 	int numPrimes = primeFactors.size();
 	std::vector<std::vector<std::complex<double>>> db = std::vector<std::vector<std::complex<double>>>(numPrimes+1,std::vector<std::complex<double>>(numSamples)); // TODO: probably make into multidimentional matrix and move through
 
-	std::vector<int> convolutionArray = this->mapper.basicMapping(numSamples, primeFactors);
+	std::vector<int> inputConvolutionArray = this->mapper.inputMapping(numSamples, primeFactors);
+	std::vector<int> outputConvolutionArray = this->mapper.outputMapping(numSamples, primeFactors);
 
 	for (int i = 0; i < numSamples; i++)
 	{
-		db[0][i] = samples[convolutionArray[i]];
+		db[0][i] = samples[inputConvolutionArray[i]];
 	}
 
 	// Compute DFT
@@ -108,7 +109,7 @@ std::vector<std::complex<double>> PrimeFactorDft::getDft(std::vector<std::comple
 	int last = numPrimes - 1;
 	for (int i = 0; i < numSamples; i++)
 	{
-		db[numPrimes][convolutionArray[i]] = db[last][i];
+		db[numPrimes][outputConvolutionArray[i]] = db[last][i];
 	}
 
 
