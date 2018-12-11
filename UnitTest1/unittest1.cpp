@@ -218,6 +218,170 @@ namespace UnitTest1
 			Assert::IsFalse(mdc.hasNext());
 		}
 	};
+	TEST_CLASS(SmallDftTest)
+	{
+	private:
+		void assertSimilar(std::vector<std::complex<double>> A, std::vector<std::complex<double>> B, double errorThreshold)
+		{
+			int aLen = A.size();
+			int bLen = B.size();
+			double error;
+			Assert::IsTrue(aLen == bLen);
+			for (int i = 0; i < aLen; i++)
+			{
+				Assert::IsTrue(abs(A[i].imag() - B[i].imag()) < errorThreshold);
+				Assert::IsTrue(abs(A[i].real() - B[i].real()) < errorThreshold);
+			}
+		}
+	public:
+		WaveGenerator waveGen = WaveGenerator();
+		BruteForceDft bdft = BruteForceDft();
+		std::vector<std::complex<double>> dftA;
+		std::vector<std::complex<double>> dftB;
+		std::vector<std::complex<double>> wave;
+		double error;
+		int numSamples;
+		TEST_METHOD(DFT2TEST)
+		{
+			DFT2 dft2 = DFT2();
+			numSamples = 2;
+			error = 0.000000001;
+			int base = 1;
+			int cap = 70;
+			int increment = 1;
+			double a = 10.;
+			double c = 0.01;
+			double d = 1.;
+			for (int N = base; N < cap; N += increment)
+			{
+				wave = waveGen.sinwave(a, numSamples, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = dft2.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				wave = waveGen.coswave(a, numSamples, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = dft2.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				a += 7.;
+				c += 0.009;
+				d += 0.05;
+			}
+		}
+		TEST_METHOD(DFT3TEST)
+		{
+			DFT3 dft3 = DFT3();
+			numSamples = 3;
+			error = 0.000000001;
+			int base = 1;
+			int cap = 100;
+			int increment = 1;
+			double a = 10.;
+			double c = 0.01;
+			double d = 1.;
+			for (int N = base; N < cap; N += increment)
+			{
+				wave = waveGen.sinwave(a, numSamples, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = dft3.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				wave = waveGen.coswave(a, numSamples, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = dft3.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				a += 7.;
+				c += 0.009;
+				d += 0.05;
+			}
+		}
+		TEST_METHOD(DFT4TEST)
+		{
+			DFT4 dft4 = DFT4();
+			numSamples = 4;
+			error = 0.000000001;
+			int base = 1;
+			int cap = 100;
+			int increment = 1;
+			double a = 10.;
+			double c = 0.01;
+			double d = 1.;
+			for (int N = base; N < cap; N += increment)
+			{
+				wave = waveGen.sinwave(a, numSamples, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = dft4.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				wave = waveGen.coswave(a, numSamples, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = dft4.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				a += 7.;
+				c += 0.009;
+				d += 0.05;
+			}
+		}
+		TEST_METHOD(DFT5TEST)
+		{
+			DFT5 dft5 = DFT5();
+			numSamples = 5;
+			error = 0.000000001;
+			int base = 1;
+			int cap = 100;
+			int increment = 1;
+			double a = 10.;
+			double c = 0.01;
+			double d = 1.;
+			for (int N = base; N < cap; N += increment)
+			{
+				wave = waveGen.sinwave(a, numSamples, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = dft5.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				wave = waveGen.coswave(a, numSamples, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = dft5.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				a += 7.;
+				c += 0.009;
+				d += 0.05;
+			}
+		}
+		TEST_METHOD(DFT7TEST)
+		{
+			DFT7 dft7 = DFT7();
+			numSamples = 7;
+			error = 0.000000001;
+			int base = 1;
+			int cap = 100;
+			int increment = 1;
+			double a = 10.;
+			double c = 0.01;
+			double d = 1.;
+			for (int N = base; N < cap; N += increment)
+			{
+				wave = waveGen.sinwave(a, numSamples, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = dft7.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				wave = waveGen.coswave(a, numSamples, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = dft7.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				a += 7.;
+				c += 0.009;
+				d += 0.05;
+			}
+		}
+	};
 
 	TEST_CLASS(PFFTTest)
 	{
@@ -312,7 +476,7 @@ namespace UnitTest1
 				assertSimilar(dftA, dftB, error);
 			}
 		}
-		TEST_METHOD(StressTest2)
+		TEST_METHOD(StressTestXtreme)
 		{
 			error = 0.000000001;
 			int base = 1;
@@ -335,7 +499,7 @@ namespace UnitTest1
 
 				a += 7.;
 				c += 0.009;
-				c += 0.05;
+				d += 0.05;
 			}
 		}
 	};
@@ -599,7 +763,7 @@ namespace UnitTest1
 
 				a += 7.;
 				c += 0.009;
-				c += 0.05;
+				d += 0.05;
 			}
 		}
 		TEST_METHOD(StressTestLarge)
@@ -624,7 +788,7 @@ namespace UnitTest1
 
 				a += 1.;
 				c += 0.001;
-				c += 0.01;
+				d += 0.01;
 			}
 		}
 	};

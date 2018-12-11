@@ -30,7 +30,7 @@ private:
 	BruteForceDft dftBruteForce;
 	std::vector<DFTAlgorithm*> subAlgorithms;
 
-	DFTAlgorithm* getSubAlg(int size);
+	DFTAlgorithm* getSubAlg(PrimeFactor primeFactor);
 public:
 	PrimeFactorDft();
 	~PrimeFactorDft();

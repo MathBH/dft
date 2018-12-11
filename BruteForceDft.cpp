@@ -3,6 +3,15 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+/*
+	Note: In "Numerical Recipes in C++", the DFT algorithm does not use -i.
+	Many other sources do and in testing it appeared to be more of a matter of preference
+	as either way worked, only the data needs to be read differently. I have opted for negating it
+	for now.
+
+	TODO: ^Clear this up further
+*/
+
 BruteForceDft::BruteForceDft()
 {
 
@@ -25,7 +34,8 @@ std::vector<std::complex<double>> BruteForceDft::getDft(std::vector<std::complex
 	{
 		for (int k = 0; k < numSamples; k++)
 		{
-			dft[n] += samples[k] * exp(2 * M_PI*i*(double)k*(double)n / (double)numSamples);
+			// Note: negated i
+			dft[n] += samples[k] * exp(2 * M_PI*-i*(double)k*(double)n / (double)numSamples);
 		}
 	}
 
@@ -44,7 +54,8 @@ std::vector<std::complex<double>> BruteForceDft::reverseDft(std::vector<std::com
 	{
 		for (int k = 0; k < numSamples; k++)
 		{
-			signal[n] += (1./numSamplesDouble)*dft[k] * exp(-2 * M_PI*i*(double)k*(double)n / numSamplesDouble);
+			// Note: negated i
+			signal[n] += (1./numSamplesDouble)*dft[k] * exp(-2 * M_PI*-i*(double)k*(double)n / numSamplesDouble);
 		}
 	}
 

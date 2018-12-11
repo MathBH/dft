@@ -22,8 +22,21 @@ PrimeFactorDft::~PrimeFactorDft()
 {
 }
 
-DFTAlgorithm * PrimeFactorDft::getSubAlg(int size)
+DFTAlgorithm * PrimeFactorDft::getSubAlg(PrimeFactor primeFactor)
 {
+	int val = primeFactor.getValue();
+	switch (val) {
+	case 2:
+		return &dft2;
+	case 3:
+		return &dft3;
+	case 4:
+		return &dft4;
+	case 5:
+		return &dft5;
+	case 7:
+		return &dft7;
+	}
 	return &dftBruteForce;
 }
 
@@ -78,7 +91,7 @@ std::vector<std::complex<double>> PrimeFactorDft::getDft(std::vector<std::comple
 		vectorOffset = vectorLength * increment;
 
 		// use primeFactors[d] to select dft alg
-		subAlg = getSubAlg(d);
+		subAlg = getSubAlg(primeFactors[d]);
 		vectorBuffer = std::vector<std::complex<double>>(vectorLength);
 
 		// for each value betwen increments
