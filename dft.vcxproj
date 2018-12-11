@@ -149,7 +149,13 @@
   <ItemGroup>
     <ClInclude Include="BruteForceDft.h" />
     <ClInclude Include="DFTAlgorithm.h" />
+    <ClInclude Include="LCSolver.h" />
+    <ClInclude Include="MultiDimensionalCounter.h" />
+    <ClInclude Include="PFFT.h" />
+    <ClInclude Include="PfftKMap.h" />
+    <ClInclude Include="PFFTMap.h" />
     <ClInclude Include="PFFTMapper.h" />
+    <ClInclude Include="PfftNMap.h" />
     <ClInclude Include="PrimeFactorDft.h" />
     <ClInclude Include="PrimeFactors.h" />
     <ClInclude Include="SmallDFTs.h" />
@@ -160,7 +166,12 @@
   <ItemGroup>
     <ClCompile Include="BruteForceDft.cpp" />
     <ClCompile Include="dft.cpp" />
+    <ClCompile Include="LCSolver.cpp" />
+    <ClCompile Include="MultiDimensionalCounter.cpp" />
+    <ClCompile Include="PFFT.cpp" />
+    <ClCompile Include="PfftKMap.cpp" />
     <ClCompile Include="PFFTMapper.cpp" />
+    <ClCompile Include="PfftNMap.cpp" />
     <ClCompile Include="PrimeFactorDft.cpp" />
     <ClCompile Include="PrimeFactors.cpp" />
     <ClCompile Include="SmallDFTs.cpp" />

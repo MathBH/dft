@@ -69,7 +69,7 @@ std::vector<PrimeFactor> PrimeFactors::primeFactors(int n)
 	{
 		result.push_back(PrimeFactor(n));
 	}
-
+	result.erase(result.begin());
 	std::sort(result.begin(), result.end());
 	
 	return result;

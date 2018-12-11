@@ -33,7 +33,8 @@ std::vector<std::complex<double>> PrimeFactorDft::getDft(std::vector<std::comple
 	std::vector<PrimeFactor> primeFactors = this->primeFactorCalculator.primeFactors(numSamples);
 
 	int numPrimes = primeFactors.size();
-	std::vector<std::vector<std::complex<double>>> db = std::vector<std::vector<std::complex<double>>>(numPrimes+1,std::vector<std::complex<double>>(numSamples)); // TODO: probably make into multidimentional matrix and move through
+	std::vector<std::vector<std::complex<double>>> db = std::vector<std::vector<std::complex<double>>>(numPrimes + 2, std::vector<std::complex<double>>(numSamples)); // TODO: probably make into multidimentional matrix and move through
+	//index 0 is where initial values go, index numPrimes+1 is where we'll put the re-ordered result
 
 	std::vector<int> inputConvolutionArray = this->mapper.inputMapping(numSamples, primeFactors);
 	std::vector<int> outputConvolutionArray = this->mapper.outputMapping(numSamples, primeFactors);
@@ -71,9 +72,8 @@ std::vector<std::complex<double>> PrimeFactorDft::getDft(std::vector<std::comple
 	DFTAlgorithm* subAlg;
 	std::vector<std::complex<double>> dftBuffer;
 	std::vector<std::complex<double>> vectorBuffer;
-	for (int d = 1; d < numPrimes; d++)
+	for (int d = 0; d < numPrimes; d++)
 	{
-		increment *= primeFactors[d - 1].getValue();
 		vectorLength = primeFactors[d].getValue();
 		vectorOffset = vectorLength * increment;
 
@@ -91,7 +91,7 @@ std::vector<std::complex<double>> PrimeFactorDft::getDft(std::vector<std::comple
 				for (int h = 0; h < vectorLength; h++)
 				{
 					currPos = i + h * increment;
-					vectorBuffer[h] = db[d-1][currPos];
+					vectorBuffer[h] = db[d][currPos];
 				}
 				dftBuffer = subAlg->getDft(vectorBuffer);
 
@@ -99,19 +99,20 @@ std::vector<std::complex<double>> PrimeFactorDft::getDft(std::vector<std::comple
 				for (int h = 0; h < vectorLength; h++)
 				{
 					currPos = i + h * increment;
-					db[d][currPos] = dftBuffer[h];
+					db[d+1][currPos] = dftBuffer[h];
 				}
 			}
 		}
+		increment *= primeFactors[d].getValue();
 	}
 
 	// Reverse convolution
-	int last = numPrimes - 1;
+	int outputIdx = numPrimes+1;
 	for (int i = 0; i < numSamples; i++)
 	{
-		db[numPrimes][outputConvolutionArray[i]] = db[last][i];
+		db[outputIdx][outputConvolutionArray[i]] = db[numPrimes][i];
 	}
 
 
-	return db[numPrimes];
+	return db[outputIdx];
 }

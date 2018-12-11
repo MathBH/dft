@@ -10,9 +10,20 @@
 #include "..\PrimeFactorDft.cpp"
 #include "..\BruteForceDft.h"
 #include "..\BruteForceDft.cpp"
+#include "..\PFFT.h"
+#include "..\PFFT.cpp"
 #include "..\SmallDfts.h"
 #include "..\SmallDfts.cpp"
 #include "..\DFTAlgorithm.h"
+#include "..\LCSolver.h"
+#include "..\LCSolver.cpp"
+#include "..\PfftKMap.h"
+#include "..\PfftKMap.cpp"
+#include "..\PfftNMap.h"
+#include "..\PfftNMap.cpp"
+#include "..\PFFTMap.h"
+#include "..\MultiDimensionalCounter.cpp"
+#include "..\MultiDimensionalCounter.h"
 #include <vector>
 #include <iostream>
 
@@ -85,7 +96,7 @@ namespace UnitTest1
 		TEST_METHOD(PrimeOf12)
 		{
 			val = 12;
-			primesExpected = std::vector<PrimeFactor>({ PrimeFactor(1),PrimeFactor(3),PrimeFactor(2,2) });
+			primesExpected = std::vector<PrimeFactor>({ PrimeFactor(3),PrimeFactor(2,2) });
 			result = pf.primeFactors(val);
 			assertSameNumbers(result, primesExpected);
 
@@ -93,7 +104,7 @@ namespace UnitTest1
 		TEST_METHOD(PrimeOf30)
 		{
 			val = 30;
-			primesExpected = std::vector<PrimeFactor>({ PrimeFactor(1),PrimeFactor(2),PrimeFactor(3),PrimeFactor(5) });
+			primesExpected = std::vector<PrimeFactor>({ PrimeFactor(2),PrimeFactor(3),PrimeFactor(5) });
 			result = pf.primeFactors(val);
 			assertSameNumbers(result, primesExpected);
 		}
@@ -141,6 +152,72 @@ namespace UnitTest1
 		}
 	};
 
+	TEST_CLASS(LinearCongruenceTest)
+	{
+	private:
+		void assertDoubleEqual(double a, double b, double error)
+		{
+			Assert::IsTrue(abs(a - b)< error);
+		}
+	public:
+		LCSolver lcSolver = LCSolver();
+		double error = 0.0000000001;
+		TEST_METHOD(PFFTCasesTest)
+		{
+			double answer = lcSolver.solvePfftTi(4, PrimeFactor(3));
+			assertDoubleEqual(1., answer, error);
+			answer = lcSolver.solvePfftTi(3, PrimeFactor(2,2));
+			assertDoubleEqual(3., answer, error);
+			answer = lcSolver.solvePfftTi(13, PrimeFactor(37));
+			assertDoubleEqual(20., answer, error);
+			answer = lcSolver.solvePfftTi(8, PrimeFactor(37));
+			assertDoubleEqual(14., answer, error);
+		}
+	};
+
+	TEST_CLASS(MultiDimensionalCounterTest)
+	{
+	private:
+		void assertAreEqual(std::vector<int> a, std::vector<int> b) {
+			int alen = a.size();
+			int blen = b.size();
+			Assert::IsTrue(alen == blen);
+			for (int i = 0; i < alen; i++)
+			{
+				Assert::IsTrue(a[i] == b[i]);
+			}
+		}
+	public:
+		MultiDimensionalCounter mdc;
+		TEST_METHOD(BasicTest)
+		{
+			std::vector<int> dimensions = {5,6,9,10,5,6};
+			mdc = MultiDimensionalCounter(dimensions);
+			for (int a = 0; a < dimensions[5]; a++)
+			{
+				for (int b = 0; b < dimensions[4]; b++)
+				{
+					for (int c = 0; c < dimensions[3]; c++)
+					{
+						for (int d = 0; d < dimensions[2]; d++)
+						{
+							for (int e = 0; e < dimensions[1]; e++)
+							{
+								for (int f = 0; f < dimensions[0]; f++)
+								{
+									Assert::IsTrue(mdc.hasNext());
+									assertAreEqual({ f,e,d,c,b,a }, mdc.nextPos());
+								}
+							}
+
+						}
+					}
+
+				}
+			}
+			Assert::IsFalse(mdc.hasNext());
+		}
+	};
 
 	TEST_CLASS(PFFTTest)
 	{
@@ -229,12 +306,63 @@ namespace UnitTest1
 			int increment = 1;
 			for (int N = base; N < cap; N += increment)
 			{
-				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				wave = waveGen.coswave(10., N, 0.01, 1.);
 				dftA = bdft.getDft(wave);
 				dftB = pfft.getDft(wave);
 				assertSimilar(dftA, dftB, error);
 			}
 		}
+		TEST_METHOD(StressTest2)
+		{
+			error = 0.000000001;
+			int base = 1;
+			int cap = 100;
+			int increment = 1;
+			double a = 10.;
+			double c = 0.01;
+			double d = 1.;
+			for (int N = base; N < cap; N += increment)
+			{
+				wave = waveGen.sinwave(a, N, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				wave = waveGen.coswave(a, N, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				a += 7.;
+				c += 0.009;
+				c += 0.05;
+			}
+		}
+	};
+
+	TEST_CLASS(PFFTStressTests)
+	{
+	private:
+		void assertSimilar(std::vector<std::complex<double>> A, std::vector<std::complex<double>> B, double errorThreshold)
+		{
+			int aLen = A.size();
+			int bLen = B.size();
+			double error;
+			Assert::IsTrue(aLen == bLen);
+			for (int i = 0; i < aLen; i++)
+			{
+				Assert::IsTrue(abs(A[i].imag() - B[i].imag()) < errorThreshold);
+				Assert::IsTrue(abs(A[i].real() - B[i].real()) < errorThreshold);
+			}
+		}
+	public:
+		WaveGenerator waveGen = WaveGenerator();
+		PrimeFactorDft pfft = PrimeFactorDft();
+		BruteForceDft bdft = BruteForceDft();
+		std::vector<std::complex<double>> dftA;
+		std::vector<std::complex<double>> dftB;
+		std::vector<std::complex<double>> wave;
+		double error;
 		TEST_METHOD(StressTestPow3)
 		{
 			error = 0.000000001;
@@ -443,6 +571,35 @@ namespace UnitTest1
 				dftA = bdft.getDft(wave);
 				dftB = pfft.getDft(wave);
 				assertSimilar(dftA, dftB, error);
+				wave = waveGen.coswave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+			}
+		}
+		TEST_METHOD(StressTestMult3From7Xtreme)
+		{
+			error = 0.000000001;
+			int base = 7;
+			int cap = 3000;
+			int mult = 3;
+			double a = 10.;
+			double c = 0.01;
+			double d = 1.;
+			for (int N = base; N < cap; N *= mult)
+			{
+				wave = waveGen.sinwave(a, N, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+				wave = waveGen.coswave(a, N, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				a += 7.;
+				c += 0.009;
+				c += 0.05;
 			}
 		}
 		TEST_METHOD(StressTestLarge)
@@ -450,13 +607,24 @@ namespace UnitTest1
 			error = 0.000000001;
 			int base = 100;
 			int cap = 300;
-			int increment = 7;
+			int increment = 8;
+			double a = 10.;
+			double c = 0.01;
+			double d = 1.;
 			for (int N = base; N < cap; N += increment)
 			{
-				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				wave = waveGen.sinwave(a, N, c, d);
 				dftA = bdft.getDft(wave);
 				dftB = pfft.getDft(wave);
 				assertSimilar(dftA, dftB, error);
+				wave = waveGen.coswave(a, N, c, d);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				a += 1.;
+				c += 0.001;
+				c += 0.01;
 			}
 		}
 	};

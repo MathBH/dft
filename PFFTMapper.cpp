@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "PFFTMapper.h"
 #include <iostream>
+#include "LCSolver.h"
 
 PFFTMapper::PFFTMapper()
 {
@@ -31,7 +32,7 @@ std::vector<int> PFFTMapper::inputMapping(int numSamples, std::vector<PrimeFacto
 	int prime;
 	int scaler;
 
-	for (int d = 1; d < D; d++)
+	for (int d = 0; d < D; d++)
 	{
 		prime = primeFactors[d].getValue();
 		scaler = numSamples / prime;
@@ -63,14 +64,17 @@ std::vector<int> PFFTMapper::outputMapping(int numSamples, std::vector<PrimeFact
 
 	int counter;
 
-	for (int d = 1; d < D; d++)
+	LCSolver lcSolver = LCSolver();
+	for (int d = 0; d < D; d++)
 	{
 		primeFactor = primeFactors[d];
 		primeValue = primeFactor.getValue();
 		scaler = numSamples / primeValue;
-		tot = totien(primeFactor);
-		fbase = fmod(pow(scaler, tot - 1.),primeValue);
-		ibase = (int)fbase;
+		//tot = totien(primeFactor);
+		//fbase = fmod(pow(scaler, tot - 1.),primeValue);
+
+		ibase = lcSolver.solvePfftTi(scaler, primeFactor);
+		//ibase = (int)fbase;
 		for (int i = 0; i < numSamples; i++)
 		{
 			counter = (i / denominator) % primeValue;
