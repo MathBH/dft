@@ -73,6 +73,241 @@ namespace UnitTest1
 		}
 	};
 
+	TEST_CLASS(DFTTest)
+	{
+	private:
+		void assertDoubleEqual(double a, double b, double error)
+		{
+			Assert::IsTrue(abs(a - b)< error);
+		}
+	
+		// Assume inputs "frequencies" and "amplitudes" have the same length
+		void assertDFTMatch(std::vector<std::complex<double>> dft, std::vector<double> cosFrequencies, std::vector<double> cosAmplitudes, std::vector<double> sinFrequencies, std::vector<double> sinAmplitudes, double error, double samplingPeriod)
+		{
+			std::complex<double> j = -1;
+			j = sqrt(j);
+	
+			std::vector<std::complex<double>> dftCopy = std::vector<std::complex<double>>(dft);
+			int numSinFrequencies = sinFrequencies.size();
+			int numCosFrequencies = cosFrequencies.size();
+			int dftLength = dftCopy.size();
+			std::vector<double>::iterator it;
+			int f;
+			int fidx;
+	
+			double ampScaler = 1./((double)dftLength / 2.);
+			double freqScaler = (double)dftLength * samplingPeriod;
+
+			//double avgAmplitude = 0.;
+	
+			// get frequencies from reverse second half of dft (positive frequencies)
+			for (int i = 0; i < numSinFrequencies; i++) {
+				f = sinFrequencies[i];
+				fidx = dftLength - f* freqScaler;
+				assertDoubleEqual(dftCopy[fidx].imag()*ampScaler, sinAmplitudes[i], error);
+				//avgAmplitude += dftCopy[fidx].imag();
+				dftCopy[fidx] -= j* dftCopy[fidx].imag(); // zero the imaginary part
+			}
+			for (int i = 0; i < numCosFrequencies; i++) {
+				f = cosFrequencies[i];
+				fidx = dftLength - f* freqScaler;
+				assertDoubleEqual(dftCopy[fidx].real()*ampScaler, cosAmplitudes[i], error);
+				//avgAmplitude += dftCopy[fidx].real();
+				dftCopy[fidx] -= dftCopy[fidx].real(); // zero the real part
+			}
+
+			//avgAmplitude /= numSinFrequencies;
+			//avgAmplitude /= numCosFrequencies;
+	
+			// iterate backwards to only half of dft (positive frequencies)
+			for (int i = dftLength - 1; i > dftLength/2; i--)
+			{
+				assertDoubleEqual(dftCopy[i].imag(), 0., error);
+				assertDoubleEqual(dftCopy[i].real(), 0., error);
+			}
+		}
+
+		void assertSimilar(std::vector<std::complex<double>> A, std::vector<std::complex<double>> B, double errorThreshold)
+		{
+			int aLen = A.size();
+			int bLen = B.size();
+			double error;
+			Assert::IsTrue(aLen == bLen);
+			for (int i = 0; i < aLen; i++)
+			{
+				Assert::IsTrue(abs(A[i].imag() - B[i].imag()) < errorThreshold);
+				Assert::IsTrue(abs(A[i].real() - B[i].real()) < errorThreshold);
+			}
+		}
+	public:
+		// As long as the brute force dft works, the following tests show all other dfts work
+		WaveGenerator waveGen = WaveGenerator();
+		BruteForceDft bdft = BruteForceDft();
+		std::vector<std::complex<double>> wave;
+		std::vector<std::complex<double>> rebuiltWave;
+		std::vector<std::complex<double>> dft;
+		std::vector<double> sinFrequencies;
+		std::vector<double> cosFrequencies;
+		std::vector<double> sinAmplitudes;
+		std::vector<double> cosAmplitudes;
+		Logger logger = Logger();
+		std::stringstream strStream = std::stringstream();
+		std::string stringBuffer;
+		double error;
+		int numSamples;
+		double samplingPeriod;
+	
+		// Assume same length
+		std::vector<std::complex<double>> sumWaves(std::vector<std::complex<double>> a, std::vector<std::complex<double>> b)
+		{
+			int length = a.size();
+			std::vector<std::complex<double>> output = std::vector<std::complex<double>>(length);
+	
+			for (int i = 0; i < length; i++)
+			{
+				output[i] = a[i] + b[i];
+			}
+			
+			return output;
+		}
+	
+		// Assume frequency and amplitude lists are equal in size
+		std::vector<std::complex<double>> generateWave(int length, double samplingPeriod, std::vector<double> cosFrequencies, std::vector<double> cosAmplitudes, std::vector<double> sinFrequencies, std::vector<double> sinAmplitudes)
+		{
+			wave = std::vector<std::complex<double>>(length);
+			int numSins = sinFrequencies.size();
+			int numCos = cosFrequencies.size();
+			for (int i = 0; i < numSins; i++) {
+				wave = sumWaves(wave,waveGen.sinwave(sinFrequencies[i], length, samplingPeriod, sinAmplitudes[i]));
+			}
+			for (int i = 0; i < numCos; i++) {
+				wave = sumWaves(wave, waveGen.coswave(cosFrequencies[i], length, samplingPeriod, cosAmplitudes[i]));
+			}
+			return wave;
+		}
+
+		/*
+			A minor stress test for testing if dfts obtained accurately rebuild the originating waves
+		*/
+		TEST_METHOD(WaveRebuildTest)
+		{
+			error = 0.00001;
+			double frequency = 20;
+			double amplitude = 1.;
+			numSamples = 100;
+
+			int freqIterations = 13;
+			double freqIncrement = 1.;
+
+			int periodIterations = 17;
+			double periodScaleDown = 0.837;
+
+			int ampIterations = 3;
+			double ampIncrement = 1.37;
+
+			int nIterations = 11;
+			int nIncrement = 3;
+
+			int numTests = freqIterations * periodIterations*ampIterations*nIterations;
+			int testCounter = 0;
+
+			for (int f = 0; f < freqIterations; f++)
+			{
+				cosFrequencies = { frequency };
+				sinFrequencies = { frequency };
+				samplingPeriod = 1. / (frequency*4.);
+
+				for (int p = 0; p < periodIterations; p++)
+				{
+					numSamples = (((1. / frequency)) / samplingPeriod)*4.;
+					for (int a = 0; a < ampIterations; a++)
+					{
+						cosAmplitudes = { amplitude };
+						sinAmplitudes = { amplitude };
+
+						for (int n = 0; n < nIterations; n++)
+						{
+							wave = generateWave(numSamples, samplingPeriod, cosFrequencies, cosAmplitudes, sinFrequencies, sinAmplitudes);
+							dft = bdft.getDft(wave);
+							rebuiltWave = bdft.reverseDft(dft);
+							assertSimilar(wave, rebuiltWave, error);
+							numSamples += nIncrement;
+							testCounter++;
+						}
+						strStream << "Status: " << testCounter << " of " << numTests << " completed.";
+						stringBuffer = strStream.str();
+						logger.WriteMessage(stringBuffer.c_str());
+						strStream.str("");
+						strStream.clear();
+						amplitude += ampIncrement;
+					}
+					samplingPeriod *= periodScaleDown;
+				}
+				frequency += freqIncrement;
+			}
+		};
+	
+		/*
+			Note: test still clanky - good enough for extensive testing on the data having the 
+			"shape" we want but a fully automated stress test would require some polishing of this
+		*/
+		TEST_METHOD(WaveDataTest)
+		{
+			error = 0.00001;
+			double frequency = 20;
+			double amplitude = 1.;
+			numSamples = 100;
+	
+			//samplingPeriod = 1./(frequency*4.);
+	
+			int freqIterations = 10;
+			double freqIncrement = 1.;
+	
+			int periodIterations = 7;
+			double periodScaleDown = 0.5;
+	
+			int ampIterations = 3;
+			double ampIncrement = 1.37;
+	
+			int numTests = freqIterations * periodIterations*ampIterations;
+			int testCounter = 0;
+	
+			for (int f = 0; f < freqIterations; f++)
+			{
+				cosFrequencies = { frequency };
+				sinFrequencies = { frequency };
+				samplingPeriod = 1. / (frequency*4.);
+				//logger.WriteMessage
+
+				for (int p = 0; p < periodIterations; p++)
+				{
+					numSamples = (((1./frequency))/samplingPeriod)*4.;
+					for (int a = 0; a < ampIterations; a++)
+					{
+						cosAmplitudes = { amplitude };
+						sinAmplitudes = { amplitude };
+
+						wave = generateWave(numSamples, samplingPeriod, cosFrequencies, cosAmplitudes, sinFrequencies, sinAmplitudes);
+						dft = bdft.getDft(wave);
+						assertDFTMatch(dft, cosFrequencies, cosAmplitudes, sinFrequencies, sinAmplitudes, error, samplingPeriod);
+						dft.clear();
+						wave.clear();
+
+						strStream << "Status: " << testCounter << " of " << numTests << " completed.";
+						stringBuffer = strStream.str();
+						logger.WriteMessage(stringBuffer.c_str());
+						strStream.str("");
+						strStream.clear();
+						amplitude += ampIncrement;
+						testCounter++;
+					}
+					samplingPeriod *= periodScaleDown;
+				}
+				frequency += freqIncrement;
+			}
+		}
+	};
+
 	TEST_CLASS(PrimeFactorsTests)
 	{
 	private:
