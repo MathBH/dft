@@ -30,12 +30,13 @@ std::vector<std::complex<double>> BruteForceDft::getDft(std::vector<std::complex
 	int numSamples = samples.size();
 	std::vector<std::complex<double>> dft = std::vector<std::complex<double>>(numSamples);
 
+	double nsth = 1. / (double)numSamples;
 	for (int n = 0; n < numSamples; n++)
 	{
 		for (int k = 0; k < numSamples; k++)
 		{
 			// Note: negated i
-			dft[n] += samples[k] * exp(2 * M_PI*-i*(double)k*(double)n / (double)numSamples);
+			dft[n] += samples[k] * exp(2 * M_PI*-i*(double)k*(double)n * nsth);
 		}
 	}
 
@@ -48,6 +49,7 @@ std::vector<std::complex<double>> BruteForceDft::reverseDft(std::vector<std::com
 	i = sqrt(i);
 	int numSamples = dft.size();
 	double numSamplesDouble = (double)numSamples;
+	double nsdth = 1. / numSamplesDouble;
 	std::vector<std::complex<double>> signal = std::vector<std::complex<double>>(numSamples);
 
 	for (int n = 0; n < numSamples; n++)
@@ -55,7 +57,7 @@ std::vector<std::complex<double>> BruteForceDft::reverseDft(std::vector<std::com
 		for (int k = 0; k < numSamples; k++)
 		{
 			// Note: negated i
-			signal[n] += (1./numSamplesDouble)*dft[k] * exp(-2 * M_PI*-i*(double)k*(double)n / numSamplesDouble);
+			signal[n] += nsdth *dft[k] * exp(-2 * M_PI*-i*(double)k*(double)n * nsdth);
 		}
 	}
 

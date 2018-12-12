@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BruteForceDft.h" />
+    <ClInclude Include="CooleyTukeyFFT.h" />
     <ClInclude Include="DFTAlgorithm.h" />
     <ClInclude Include="LCSolver.h" />
     <ClInclude Include="MultiDimensionalCounter.h" />
@@ -165,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BruteForceDft.cpp" />
+    <ClCompile Include="CooleyTukeyFFT.cpp" />
     <ClCompile Include="dft.cpp" />
     <ClCompile Include="LCSolver.cpp" />
     <ClCompile Include="MultiDimensionalCounter.cpp" />

@@ -24,6 +24,8 @@
 #include "..\PFFTMap.h"
 #include "..\MultiDimensionalCounter.cpp"
 #include "..\MultiDimensionalCounter.h"
+#include "..\CooleyTukeyFFT.cpp"
+#include "..\CooleyTukeyFFT.h"
 #include <vector>
 #include <iostream>
 
@@ -618,7 +620,7 @@ namespace UnitTest1
 		}
 	};
 
-	TEST_CLASS(PFFTTest)
+	TEST_CLASS(PFFTTests)
 	{
 	private:
 		void assertSimilar(std::vector<std::complex<double>> A, std::vector<std::complex<double>> B, double errorThreshold)
@@ -735,6 +737,135 @@ namespace UnitTest1
 				a += 7.;
 				c += 0.009;
 				d += 0.05;
+			}
+		}
+	};
+
+	TEST_CLASS(CooleyTukeyTests)
+	{
+	private:
+		void assertSimilar(std::vector<std::complex<double>> A, std::vector<std::complex<double>> B, double errorThreshold)
+		{
+			int aLen = A.size();
+			int bLen = B.size();
+			double error;
+			Assert::IsTrue(aLen == bLen);
+			for (int i = 0; i < aLen; i++)
+			{
+				Assert::IsTrue(abs(A[i].imag() - B[i].imag()) < errorThreshold);
+				Assert::IsTrue(abs(A[i].real() - B[i].real()) < errorThreshold);
+			}
+		}
+	public:
+		Logger logger = Logger();
+		std::stringstream strStream = std::stringstream();
+		std::string stringBuffer;
+		WaveGenerator waveGen = WaveGenerator();
+		CooleyTukeyFFT ctfft = CooleyTukeyFFT();
+		BruteForceDft bdft = BruteForceDft();
+		std::vector<std::complex<double>> dftA;
+		std::vector<std::complex<double>> dftB;
+		std::vector<std::complex<double>> wave;
+		double error;
+		TEST_METHOD(CosWaveTest32)
+		{
+			error = 0.000000001;
+			wave = waveGen.coswave(10., 32, 0.01, 1.);
+			dftA = bdft.getDft(wave);
+			dftB = ctfft.getDft(wave);
+			assertSimilar(dftA, dftB, error);
+		}
+		TEST_METHOD(SinWaveTest32)
+		{
+			error = 0.000000001;
+			wave = waveGen.sinwave(10., 32, 0.01, 1.);
+			dftA = bdft.getDft(wave);
+			dftB = ctfft.getDft(wave);
+			assertSimilar(dftA, dftB, error);
+		}
+		TEST_METHOD(CosWaveTest16)
+		{
+			error = 0.000000001;
+			wave = waveGen.coswave(10., 16, 0.01, 1.);
+			dftA = bdft.getDft(wave);
+			dftB = ctfft.getDft(wave);
+			assertSimilar(dftA, dftB, error);
+		}
+		TEST_METHOD(SinWaveTest16)
+		{
+			error = 0.000000001;
+			wave = waveGen.sinwave(10., 16, 0.01, 1.);
+			dftA = bdft.getDft(wave);
+			dftB = ctfft.getDft(wave);
+			assertSimilar(dftA, dftB, error);
+		}
+		TEST_METHOD(StressTest1)
+		{
+			error = 0.01;
+			int base = 2;
+			int cap = 12;
+			int increment = 1;
+			int N = 2;
+
+			for (int i = base; i < cap; i += increment)
+			{
+				wave = waveGen.coswave(10., N, 0.01, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = ctfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+				N *= 2;
+				strStream << "Status: " << i << " of " << cap << "...";
+				stringBuffer = strStream.str();
+				logger.WriteMessage(stringBuffer.c_str());
+				strStream.str("");
+				strStream.clear();
+			}
+		}
+		TEST_METHOD(StressTestXtreme)
+		{
+			error = 0.000000001;
+			int base = 2;
+			int cap = 10;
+			int increment = 1;
+
+			int subBase = 1;
+			int subCap = 100;
+			int subIncrement = 1;
+
+			int counter = 0;
+			int numTests = cap * subCap;
+
+			double a = 10.;
+			double c = 0.01;
+			double d = 1.;
+			int N = 2;
+			for (int i = base; i < cap; i += increment)
+			{
+				for (int ii = subBase; ii < subCap; ii += subIncrement)
+				{
+					wave = waveGen.sinwave(a, N, c, d);
+					dftA = bdft.getDft(wave);
+					dftB = ctfft.getDft(wave);
+					assertSimilar(dftA, dftB, error);
+
+					wave = waveGen.coswave(a, N, c, d);
+					dftA = bdft.getDft(wave);
+					dftB = ctfft.getDft(wave);
+					assertSimilar(dftA, dftB, error);
+
+					a += 7.;
+					c += 0.009;
+					d += 0.05;
+
+
+					counter++;
+				}
+					strStream << "Status: " << i << " of " << cap << "...";
+					stringBuffer = strStream.str();
+					logger.WriteMessage(stringBuffer.c_str());
+					strStream.str("");
+					strStream.clear();
+				N *= 2;
 			}
 		}
 	};

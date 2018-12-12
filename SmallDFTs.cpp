@@ -3,6 +3,9 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#define THIRD 0.333333333333333333333333333333
+#define SEVENTH 0.142857142857142857142857142857142857142857142857142857142
+
 /*
 	2-Point Dft
 	"Fast Fourier Transform and Convolution" p.145
@@ -31,7 +34,7 @@ std::vector<std::complex<double>> DFT3::getDft(std::vector<std::complex<double>>
 
 	std::vector<std::complex<double>> X = std::vector<std::complex<double>>(3);
 
-	std::complex<double> u = 2. * M_PI/3.;
+	std::complex<double> u = 2. * M_PI*THIRD;
 	std::complex<double> t1 = samples[1] + samples[2];
 	std::complex<double> m0 = samples[0] + t1;
 	std::complex<double> m1 = (cos(u) - 1.)*t1;
@@ -82,15 +85,15 @@ std::vector<std::complex<double>> DFT5::getDft(std::vector<std::complex<double>>
 
 	std::vector<std::complex<double>> X = std::vector<std::complex<double>>(5);
 
-	std::complex<double> u = 2. * M_PI / 5.;
+	std::complex<double> u = 2. * M_PI * 0.2;
 	std::complex<double> t1 = samples[1] + samples[4];
 	std::complex<double> t2 = samples[2] + samples[3];
 	std::complex<double> t3 = samples[1] - samples[4];
 	std::complex<double> t4 = samples[3] - samples[2];
 	std::complex<double> t5 = t1 + t2;
 	std::complex<double> m0 = 1.*(samples[0] + t5);
-	std::complex<double> m1 = ((cos(u) + cos(2.*u)) / 2. - 1.)*t5;
-	std::complex<double> m2 = ((cos(u) - cos(2.*u)) / 2.)*(t1 - t2);
+	std::complex<double> m1 = ((cos(u) + cos(2.*u)) * 0.5 - 1.)*t5;
+	std::complex<double> m2 = ((cos(u) - cos(2.*u)) * 0.5)*(t1 - t2);
 	std::complex<double> m3 = -j * (sin(u)) * (t3 + t4);
 	std::complex<double> m4 = -j * (sin(u) + sin(2.*u)) * t4;
 	std::complex<double> m5 = j * (sin(u) - sin(2.*u))*t3;
@@ -120,7 +123,7 @@ std::vector<std::complex<double>> DFT7::getDft(std::vector<std::complex<double>>
 
 	std::vector<std::complex<double>> X = std::vector<std::complex<double>>(7);
 
-	std::complex<double> u = 2. * M_PI / 7.;
+	std::complex<double> u = 2. * M_PI * SEVENTH;
 
 	std::complex<double> t1 = samples[1] + samples[6];
 	std::complex<double> t2 = samples[2] + samples[5];
@@ -136,24 +139,24 @@ std::vector<std::complex<double>> DFT7::getDft(std::vector<std::complex<double>>
 	std::complex<double> t12 = t6 - t7;
 
 	std::complex<double> m0 = samples[0] + t4;
-	std::complex<double> m1 = ((cos(u) + cos(2.*u) + cos(3.*u)) / 3. - 1.)*t4;
+	std::complex<double> m1 = ((cos(u) + cos(2.*u) + cos(3.*u)) * THIRD - 1.)*t4;
 
 	std::complex<double> t13 = -t8 - t9;
 
-	std::complex<double> m2 = ((2.*cos(u) - cos(2.*u) - cos(3.*u))/3.) *t8 ;
-	std::complex<double> m3 = (( cos(u) - 2.*cos(2.*u) + cos(3.*u))/3.)*t9 ;
-	std::complex<double> m4 = (( cos(u) + cos(2.*u) - 2.*cos(3.*u))/3.)*t13;
+	std::complex<double> m2 = ((2.*cos(u) - cos(2.*u) - cos(3.*u))*THIRD) *t8 ;
+	std::complex<double> m3 = (( cos(u) - 2.*cos(2.*u) + cos(3.*u))*THIRD)*t9 ;
+	std::complex<double> m4 = (( cos(u) + cos(2.*u) - 2.*cos(3.*u))*THIRD)*t13;
 
 	std::complex<double> s0 = -m2 - m3;
 	std::complex<double> s1 = -m2 - m4;
 
-	std::complex<double> m5 = -j * ((sin(u) + sin(2.*u) - sin(3.*u)) / 3.)*t10;
+	std::complex<double> m5 = -j * ((sin(u) + sin(2.*u) - sin(3.*u)) * THIRD)*t10;
 
 	std::complex<double> t14 = -t11 - t12;
 
-	std::complex<double> m6 = j*((2.*sin(u) - sin(2.*u) + sin(3.*u))/3.)*t11;
-	std::complex<double> m7 = j*((sin(u) - 2.*sin(2.*u) - sin(3.*u))/3.)*t12;
-	std::complex<double> m8 = j*((sin(u) + sin(2.*u) + 2.*sin(3.*u))/3.)*t14;
+	std::complex<double> m6 = j*((2.*sin(u) - sin(2.*u) + sin(3.*u))*THIRD)*t11;
+	std::complex<double> m7 = j*((sin(u) - 2.*sin(2.*u) - sin(3.*u))*THIRD)*t12;
+	std::complex<double> m8 = j*((sin(u) + sin(2.*u) + 2.*sin(3.*u))*THIRD)*t14;
 
 	std::complex<double> s2 = -m6 - m7;
 	std::complex<double> s3 = m6 + m8;
