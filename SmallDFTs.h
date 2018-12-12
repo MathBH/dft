@@ -2,7 +2,11 @@
 #include "DFTAlgorithm.h"
 
 /*
-	"Fast Fourier Transform and Convolution" p.145 - p150
+	SmallDFTs.h
+	Implementations of small dft algorithms in "Fast Fourier Transform and Convolution"
+	p.145 - p150
+
+	Tesla Belzile-Ha
 */
 
 class DFT2 : public DFTAlgorithm

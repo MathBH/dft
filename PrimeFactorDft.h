@@ -5,14 +5,19 @@
 #include "DFTAlgorithm.h"
 #include "BruteForceDft.h"
 #include "SmallDFTs.h"
+#include "CooleyTukeyFFT.h"
+/*
+	PrimeFactorDft.h
+	Implementation of algorithm from "Fast Fourier Transform and Convolution Algorithms"
+	p.125-129
+
+	Tesla Belzile-Ha
+*/
 
 /*
-	Prime Factor Fourier Transform
-
 	Notes:
-	
-	An advantage of this algorithm is it allows for significantly less constraints on the sample size's properties
-	This algorithm works best for sizes that split into relatively small primes and gets worse as the primes get larger
+		An advantage of this algorithm is it allows for significantly less constraints on the sample size's properties
+		This algorithm works best for sizes that split into relatively small primes and gets worse as the primes get larger
 
 	This algorithm can be combined with other fft algorithms for computing the smaller parts who's sizes are relatively prime. This is the approach used here.
 */
@@ -28,6 +33,7 @@ private:
 	DFT5 dft5;
 	DFT7 dft7;
 	BruteForceDft dftBruteForce;
+	CooleyTukeyFFT cooleyTukeyFFT;
 	std::vector<DFTAlgorithm*> subAlgorithms;
 
 	DFTAlgorithm* getSubAlg(PrimeFactor primeFactor);

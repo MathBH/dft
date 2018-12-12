@@ -13,13 +13,6 @@ CooleyTukeyFFT::~CooleyTukeyFFT()
 {
 }
 
-void cSwap(double* a, double* b)
-{
-	double atemp = *a ;
-	*a = *b ;
-	*b = atemp;
-}
-
 std::vector<std::complex<double>> CooleyTukeyFFT::getDft(std::vector<std::complex<double>> samples)
 {
 	int n, mmax, m, j, istep, i;
@@ -48,8 +41,8 @@ std::vector<std::complex<double>> CooleyTukeyFFT::getDft(std::vector<std::comple
 	{
 		if (j > i)
 		{
-			cSwap(&samplesCopy[j - 1], &samplesCopy[i - 1]);
-			cSwap(&samplesCopy[j], &samplesCopy[i]);
+			std::swap(samplesCopy[j - 1], samplesCopy[i - 1]);
+			std::swap(samplesCopy[j], samplesCopy[i]);
 		}
 		m = nn;
 		while (m >= 2 && j > m)

@@ -3,6 +3,15 @@
 #include <complex>
 #include "DFTAlgorithm.h"
 
+/*
+	Brute Force DFT
+	Tesla Belzile-Ha
+
+	A brute force implementation based on equations from based on equations
+	from "Numerical Recipes in C++" p.508.
+
+*/
+
 class BruteForceDft: public DFTAlgorithm
 {
 public:

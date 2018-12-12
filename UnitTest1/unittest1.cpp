@@ -412,49 +412,6 @@ namespace UnitTest1
 		}
 	};
 
-	TEST_CLASS(MultiDimensionalCounterTest)
-	{
-	private:
-		void assertAreEqual(std::vector<int> a, std::vector<int> b) {
-			int alen = a.size();
-			int blen = b.size();
-			Assert::IsTrue(alen == blen);
-			for (int i = 0; i < alen; i++)
-			{
-				Assert::IsTrue(a[i] == b[i]);
-			}
-		}
-	public:
-		MultiDimensionalCounter mdc;
-		TEST_METHOD(BasicTest)
-		{
-			std::vector<int> dimensions = {5,6,9,10,5,6};
-			mdc = MultiDimensionalCounter(dimensions);
-			for (int a = 0; a < dimensions[5]; a++)
-			{
-				for (int b = 0; b < dimensions[4]; b++)
-				{
-					for (int c = 0; c < dimensions[3]; c++)
-					{
-						for (int d = 0; d < dimensions[2]; d++)
-						{
-							for (int e = 0; e < dimensions[1]; e++)
-							{
-								for (int f = 0; f < dimensions[0]; f++)
-								{
-									Assert::IsTrue(mdc.hasNext());
-									assertAreEqual({ f,e,d,c,b,a }, mdc.nextPos());
-								}
-							}
-
-						}
-					}
-
-				}
-			}
-			Assert::IsFalse(mdc.hasNext());
-		}
-	};
 	TEST_CLASS(SmallDftTest)
 	{
 	private:
@@ -707,7 +664,12 @@ namespace UnitTest1
 			int increment = 1;
 			for (int N = base; N < cap; N += increment)
 			{
-				wave = waveGen.coswave(10., N, 0.01, 1.);
+				wave = waveGen.coswave(N/4, N, 1./(double)N, 1.);
+				dftA = bdft.getDft(wave);
+				dftB = pfft.getDft(wave);
+				assertSimilar(dftA, dftB, error);
+
+				wave = waveGen.sinwave(N / 4, N, 1. / (double)N, 1.);
 				dftA = bdft.getDft(wave);
 				dftB = pfft.getDft(wave);
 				assertSimilar(dftA, dftB, error);
@@ -719,24 +681,28 @@ namespace UnitTest1
 			int base = 1;
 			int cap = 100;
 			int increment = 1;
-			double a = 10.;
-			double c = 0.01;
-			double d = 1.;
+
+			int freqIterations = 7;
+			double freqScale = 0.5;
+
 			for (int N = base; N < cap; N += increment)
 			{
-				wave = waveGen.sinwave(a, N, c, d);
-				dftA = bdft.getDft(wave);
-				dftB = pfft.getDft(wave);
-				assertSimilar(dftA, dftB, error);
+				double d = 1.;
+				double freq = 1.;
+				for (int f = 0; f < freqIterations; f++)
+				{
+					wave = waveGen.sinwave((N/4)*freq, N, 1./((double)N*freq), d);
+					dftA = bdft.getDft(wave);
+					dftB = pfft.getDft(wave);
+					assertSimilar(dftA, dftB, error);
 
-				wave = waveGen.coswave(a, N, c, d);
-				dftA = bdft.getDft(wave);
-				dftB = pfft.getDft(wave);
-				assertSimilar(dftA, dftB, error);
-
-				a += 7.;
-				c += 0.009;
-				d += 0.05;
+					wave = waveGen.coswave((N / 4)*freq, N, 1. / ((double)N*freq), d);
+					dftA = bdft.getDft(wave);
+					dftB = pfft.getDft(wave);
+					assertSimilar(dftA, dftB, error);
+					freq *= freqScale;
+					d += 3.7;
+				}
 			}
 		}
 	};
@@ -971,7 +937,7 @@ namespace UnitTest1
 			int mult = 2;
 			for (int N = base; N < cap; N *= mult)
 			{
-				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				wave = waveGen.sinwave(N/4, N, 1./(double)N, 1.);
 				dftA = bdft.getDft(wave);
 				dftB = pfft.getDft(wave);
 				assertSimilar(dftA, dftB, error);
@@ -999,7 +965,7 @@ namespace UnitTest1
 			int mult = 2;
 			for (int N = base; N < cap; N *= mult)
 			{
-				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				wave = waveGen.sinwave(N / 4, N, 1./(double)N, 1.);
 				dftA = bdft.getDft(wave);
 				dftB = pfft.getDft(wave);
 				assertSimilar(dftA, dftB, error);
@@ -1013,7 +979,7 @@ namespace UnitTest1
 			int mult = 2;
 			for (int N = base; N < cap; N *= mult)
 			{
-				wave = waveGen.sinwave(10., N, 0.01, 1.);
+				wave = waveGen.sinwave(N/4, N, 1./(double)N, 1.);
 				dftA = bdft.getDft(wave);
 				dftB = pfft.getDft(wave);
 				assertSimilar(dftA, dftB, error);

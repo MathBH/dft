@@ -12,6 +12,7 @@ PrimeFactorDft::PrimeFactorDft()
 	dft5 = DFT5();
 	dft7 = DFT7();
 	dftBruteForce = BruteForceDft();
+	cooleyTukeyFFT = CooleyTukeyFFT();
 	subAlgorithms = std::vector<DFTAlgorithm*>({
 		&dft2, &dft3,
 		&dft4, &dft5,
@@ -37,6 +38,8 @@ DFTAlgorithm * PrimeFactorDft::getSubAlg(PrimeFactor primeFactor)
 	case 7:
 		return &dft7;
 	}
+	if (primeFactor.getBase() == 2)
+		return &cooleyTukeyFFT;
 	return &dftBruteForce;
 }
 
