@@ -22,6 +22,7 @@ std::vector<std::complex<double>> CooleyTukeyFFT::getDft(std::vector<std::comple
 
 	int n, mmax, m, j, istep, i;
 	double wtemp, wr, wpr, wpi, wi, theta, tempr, tempi;
+	std::complex<double> temp;
 	n = ctdft.size();
 	j = 0;
 
@@ -50,7 +51,7 @@ std::vector<std::complex<double>> CooleyTukeyFFT::getDft(std::vector<std::comple
 		theta = M_PI / (double)mmax;		// These are the values for at a given dimension (because row*col becomes new row length so then vals dependent on N use mmax)
 		wtemp = sin(0.5*theta);					// notice theta uses 2*pi, coz essentialyl a 2-point dft
 		wpr = -2.*wtemp*wtemp;
-		wpi = sin(theta);
+		wpi = sin(theta);					// calculated outside of loop to minimize op cost
 		wr = 1.;
 		wi = 0.;
 		for (m = 0; m < mmax; m++) // is bassically iterating start pos through the increment like with when u were mapping Prime-Factor
@@ -61,12 +62,13 @@ std::vector<std::complex<double>> CooleyTukeyFFT::getDft(std::vector<std::comple
 				j = i + mmax;
 				tempr = wr * ctdft[j].real() - wi * -ctdft[j].imag();	// 4 entries coz image and real
 				tempi = wr * -ctdft[j].imag() + wi * ctdft[j].real();
+				temp = tempr - _i * tempi;
 
-				ctdft[j] = ctdft[i] - (tempr - _i*tempi);
-				ctdft[i] += (tempr - _i*tempi);
+				ctdft[j] = ctdft[i] - temp;
+				ctdft[i] += temp;
 			}
 			wtemp = wr;
-			wr = wtemp*wpr - wi * wpi + wr;
+			wr = wr *wpr - wi * wpi + wr;
 			wi = wi * wpr + wtemp * wpi + wi;
 		}
 		mmax = istep;
