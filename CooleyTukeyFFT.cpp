@@ -15,37 +15,26 @@ CooleyTukeyFFT::~CooleyTukeyFFT()
 
 std::vector<std::complex<double>> CooleyTukeyFFT::getDft(std::vector<std::complex<double>> samples)
 {
+	std::complex<double> _i = -1.;
+	_i = sqrt(_i);
+
+	std::vector<std::complex<double>> ctdft = std::vector<std::complex<double>>(samples);
+
 	int n, mmax, m, j, istep, i;
 	double wtemp, wr, wpr, wpi, wi, theta, tempr, tempi;
+	int nn = ctdft.size();
+	n = nn;
+	j = 0;
 
-	// change samples to book format - TODO: refactor this omg pls
-	int samplesCopyLength = samples.size() * 2;
-	int tempIdx;
-	std::vector<double> samplesCopy = std::vector<double>(samplesCopyLength);
-	std::complex<double> tempc;
-	for (int idx = 1; idx < samplesCopyLength; idx += 2)
-	{
-		tempIdx = idx * 0.5;
-		tempc = samples[tempIdx];
-		samplesCopy[idx] = tempc.imag();
-		samplesCopy[idx - 1] = tempc.real();
-	}
-	// change samples to book format
-
-	int nn = samplesCopyLength /2;
-	n = nn << 1;
-	j = 1;
-
-	// Bit-Reversal
-	for (i = 1; i < n; i += 2)
+	// Bit-Reversal				// All in all, fairly familiar to the prime-factor splitting into multiples
+	for (i = 0; i <= n; i++)	// bassically placing values in output order from odd-index/evem-index split each time
 	{
 		if (j > i)
 		{
-			std::swap(samplesCopy[j - 1], samplesCopy[i - 1]);
-			std::swap(samplesCopy[j], samplesCopy[i]);
+			std::swap(ctdft[j], ctdft[i]);
 		}
-		m = nn;
-		while (m >= 2 && j > m)
+		m = nn >> 1;
+		while (m >= 1 && j >= m)
 		{
 			j -= m;
 			m >>= 1;
@@ -54,27 +43,28 @@ std::vector<std::complex<double>> CooleyTukeyFFT::getDft(std::vector<std::comple
 	}
 
 	// Danielson-Lanczos
-	mmax = 2;
+	mmax = 1;
 	while (n > mmax)
 	{
+		// every loop of while is multiplying mmax by 2, effectively switching dimensions each time (if we see this as a multidimensional thing with each dimension of size 2)
 		istep = mmax << 1;
-		theta = (2.*M_PI) / (double)mmax;
-		wtemp = sin(0.5*theta);
+		theta = M_PI / (double)mmax;		// These are the values for at a given dimension (because row*col becomes new row length so then vals dependent on N use mmax)
+		wtemp = sin(0.5*theta);					// notice theta uses 2*pi, coz essentialyl a 2-point dft
 		wpr = -2.*wtemp*wtemp;
 		wpi = sin(theta);
 		wr = 1.;
 		wi = 0.;
-		for (m = 1; m < mmax; m += 2)
-		{
-			for (i = m; i <= n; i += istep)
-			{
+		for (m = 0; m < mmax; m++) // is bassically iterating start pos through the increment like with when u were mapping Prime-Factor
+		{							  // start pos increases by 2 because of the imaginary/real representation
+			for (i = m; i < n; i += istep) // So istep (the increment) starts at 4, then 8, then 16, 32, etc (ie: 2 exponential)
+			{								// So, bassically iteratino through the whole thing at increasing power 2 intervals
+				// And this is the actual Danielson-Lancoz calculation part
 				j = i + mmax;
-				tempr = wr * samplesCopy[j - 1] - wi * samplesCopy[j];
-				tempi = wr * samplesCopy[j] + wi * samplesCopy[j - 1];
-				samplesCopy[j - 1] = samplesCopy[i - 1] - tempr;
-				samplesCopy[j] = samplesCopy[i] - tempi;
-				samplesCopy[i - 1] += tempr;
-				samplesCopy[i] += tempi;
+				tempr = wr * ctdft[j].real() - wi * -ctdft[j].imag();	// 4 entries coz image and real
+				tempi = wr * -ctdft[j].imag() + wi * ctdft[j].real();
+
+				ctdft[j] = ctdft[i] - (tempr - _i*tempi);
+				ctdft[i] += (tempr - _i*tempi);
 			}
 			wr = (wtemp = wr)*wpr - wi * wpi + wr;
 			wi = wi * wpr + wtemp * wpi + wi;
@@ -82,16 +72,5 @@ std::vector<std::complex<double>> CooleyTukeyFFT::getDft(std::vector<std::comple
 		mmax = istep;
 	}
 
-	// put in complex<double> vector - TODO: refactor this omg pls
-	std::complex<double> imagVal = -1;
-	imagVal = sqrt(imagVal);
-	std::vector<std::complex<double>> dft = std::vector<std::complex<double>>(samplesCopyLength / 2);
-	for (int idx = 1; idx < samplesCopyLength; idx += 2)
-	{
-		tempIdx = idx * 0.5;
-		dft[tempIdx] = -imagVal*samplesCopy[idx] + samplesCopy[idx - 1];
-	}
-	// put in complex<double> vector
-
-	return dft;
+	return ctdft;
 }
