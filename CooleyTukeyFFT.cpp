@@ -22,8 +22,7 @@ std::vector<std::complex<double>> CooleyTukeyFFT::getDft(std::vector<std::comple
 
 	int n, mmax, m, j, istep, i;
 	double wtemp, wr, wpr, wpi, wi, theta, tempr, tempi;
-	int nn = ctdft.size();
-	n = nn;
+	n = ctdft.size();
 	j = 0;
 
 	// Bit-Reversal				// All in all, fairly familiar to the prime-factor splitting into multiples
@@ -33,7 +32,7 @@ std::vector<std::complex<double>> CooleyTukeyFFT::getDft(std::vector<std::comple
 		{
 			std::swap(ctdft[j], ctdft[i]);
 		}
-		m = nn >> 1;
+		m = n >> 1;
 		while (m >= 1 && j >= m)
 		{
 			j -= m;
@@ -66,7 +65,8 @@ std::vector<std::complex<double>> CooleyTukeyFFT::getDft(std::vector<std::comple
 				ctdft[j] = ctdft[i] - (tempr - _i*tempi);
 				ctdft[i] += (tempr - _i*tempi);
 			}
-			wr = (wtemp = wr)*wpr - wi * wpi + wr;
+			wtemp = wr;
+			wr = wtemp*wpr - wi * wpi + wr;
 			wi = wi * wpr + wtemp * wpi + wi;
 		}
 		mmax = istep;
